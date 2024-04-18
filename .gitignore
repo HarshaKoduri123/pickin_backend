@@ -1,0 +1,31 @@
+# Ignore Python bytecode files
+*.pyc
+__pycache__/
+
+# Ignore environment-specific files
+.myenv
+
+
+
+# Ignore log files
+*.log
+
+# Ignore static files (generated during development)
+/staticfiles/
+
+# Ignore media files (user-uploaded content)
+/media/
+
+# Ignore local development settings
+/local_settings.py
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
+*.swp
+
+# Ignore compiled JavaScript files
+/build/
+
+# Ignore dependencies installed by pip
+/venv/
