@@ -86,10 +86,16 @@ WSGI_APPLICATION = 'pickin_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'pickin_data',
+        'USER': 'admin',
+        'PASSWORD': '120175vks',
+        'HOST': 'database-2.cvaue4k8qhtz.us-east-1.rds.amazonaws.com',   # Provide your RDS instance endpoint
+        'PORT': '3306',                # MySQL default port
     }
 }
+
+
 
 ## User model
 AUTH_USER_MODEL = 'pickin_app.AppUser'

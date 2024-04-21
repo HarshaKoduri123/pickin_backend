@@ -29,3 +29,6 @@ myenv/
 
 # Ignore dependencies installed by pip
 /venv/
+
+*.sqlite3
+
