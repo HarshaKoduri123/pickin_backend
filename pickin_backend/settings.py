@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import os  # Add this line at the top of your settings.py file
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:5173']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:5173', 'http://127.0.0.1:8000']
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -65,7 +69,7 @@ ROOT_URLCONF = 'pickin_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'pickin_frontend/build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -86,16 +90,10 @@ WSGI_APPLICATION = 'pickin_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'pickin_data',
-        'USER': 'admin',
-        'PASSWORD': '120175vks',
-        'HOST': 'database-2.cvaue4k8qhtz.us-east-1.rds.amazonaws.com',   # Provide your RDS instance endpoint
-        'PORT': '3306',                # MySQL default port
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
 
 ## User model
 AUTH_USER_MODEL = 'pickin_app.AppUser'
@@ -150,3 +148,7 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'pickin_frontend/build/static'),  # Adjust the path accordingly
+]
