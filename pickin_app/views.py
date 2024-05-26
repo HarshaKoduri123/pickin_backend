@@ -11,22 +11,29 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import render
 import os
+import logging
 
 
 def index(request):
     return render(request, 'index.html')
-class UserRegister(APIView):
-	permission_classes = (permissions.AllowAny,)
-	def post(self, request):
-		clean_data = custom_validation(request.data)
-		print(clean_data)
-		serializer = UserRegisterSerializer(data=clean_data)
-		if serializer.is_valid(raise_exception=True):
-			user = serializer.create(clean_data)
-			if user:
-				return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
+class UserRegister(APIView):
+    permission_classes = (permissions.AllowAny,)
+    
+    def post(self, request):
+        try:
+            clean_data = custom_validation(request.data)
+            print(clean_data)
+            serializer = UserRegisterSerializer(data=clean_data)
+            if serializer.is_valid(raise_exception=True):
+                user = serializer.create(clean_data)
+                if user:
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"An error occurred: {e}", exc_info=True)
+            return Response({'detail': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserLogin(APIView):
 	permission_classes = (permissions.AllowAny,)
