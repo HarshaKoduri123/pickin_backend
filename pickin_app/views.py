@@ -88,6 +88,7 @@ class UserFileUploadView(APIView):
 	
 	def post(self, request):
 		print(request.data)
+		print("hii")
 		serializer = UserFileSerializer(data=request.data)
 		if serializer.is_valid():
 			serializer.save(user=request.user)  # Pass user to the save method

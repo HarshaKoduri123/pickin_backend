@@ -32,7 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['http://34.233.135.117:8000', 'http://127.0.0.1:8000', 'http://localhost:8000','https://pickin.ai']
+CSRF_TRUSTED_ORIGINS = ['http://34.233.135.117:8000', 'http://127.0.0.1:8000', 'http://localhost:3000','https://www.pickin.ai']
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
