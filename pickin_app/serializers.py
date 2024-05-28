@@ -43,9 +43,9 @@ class UserLoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = UserModel
-		fields = ('email', 'fullname', 'business_type')
+		fields = ('email', 'fullname', 'business_name','business_type', 'phone')
 		
-class UserFileSerializer(serializers.ModelSerializer):
+class UserInvoiceSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = UserFile

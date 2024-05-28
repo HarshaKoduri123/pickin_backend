@@ -2,7 +2,7 @@ from django.contrib.auth import login, logout
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, UserFileSerializer
+from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, UserInvoiceSerializer
 from rest_framework import permissions, status
 from .validations import custom_validation, validate_email, validate_password
 from .models import UserFile
@@ -10,7 +10,9 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import render
+import pandas as pd
 import os
+
 
 
 def index(request):
@@ -82,16 +84,44 @@ class UserFileUploadView(APIView):
 		user = request.user
 
 		user_files = UserFile.objects.filter(user=user)
-		serializer = UserFileSerializer(user_files, many=True)
+		serializer = UserInvoiceSerializer(user_files, many=True)
 		print(serializer.data)
 		return Response(serializer.data)
 	
 	def post(self, request):
-		print(request.data)
-		print("hii")
-		serializer = UserFileSerializer(data=request.data)
+		serializer = UserInvoiceSerializer(data=request.data)
 		if serializer.is_valid():
 			serializer.save(user=request.user)  # Pass user to the save method
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		print(serializer.errors)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class ReadExcelView(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+	authentication_classes = (SessionAuthentication,)
+	def get(self, request):
+		user = request.user
+
+		user_files = UserFile.objects.filter(user=user)
+		if not user_files:
+			return Response({"error": "No files uploaded by the user."}, status=status.HTTP_404_NOT_FOUND)
+
+		# Assuming the user has only one file. Modify if multiple files are expected.
+		file_obj = user_files.first()
+
+		file_path = file_obj.file.path  # Get the file path
+		file_path = os.path.dirname(file_path)+"/Products.xlsx"
+
+		if not os.path.exists(file_path):
+			return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+
+		df = pd.read_excel(file_path)  # Read the Excel file into a DataFrame
+		first_10_rows = df.head(10)  # Get the first 10 rows
+
+		# Convert the DataFrame to JSON for response
+		response_data = first_10_rows.to_json(orient="records")
+		print(response_data)
+
+		return HttpResponse(response_data, content_type="application/json")
