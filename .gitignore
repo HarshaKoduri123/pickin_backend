@@ -30,3 +30,8 @@ myenv/
 # Ignore dependencies installed by pip
 /venv/
 
+/sales_files/
+/user_files/
+
+*.sqlite3
+

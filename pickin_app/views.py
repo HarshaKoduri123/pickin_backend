@@ -2,10 +2,10 @@ from django.contrib.auth import login, logout
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, UserInvoiceSerializer
+from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer,SalesSerializer, InvoiceSerializer
 from rest_framework import permissions, status
 from .validations import custom_validation, validate_email, validate_password
-from .models import UserFile
+from .models import InvoiceFile, SalesFile
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.http import HttpResponse
@@ -23,7 +23,6 @@ class UserRegister(APIView):
 	permission_classes = (permissions.AllowAny,)
 	def post(self, request):
 		clean_data = custom_validation(request.data)
-		print(clean_data)
 		serializer = UserRegisterSerializer(data=clean_data)
 		if serializer.is_valid(raise_exception=True):
 			user = serializer.create(clean_data)
@@ -71,29 +70,44 @@ class BusinessTypeView(APIView):
 	def get(self, request):
 		user = request.user
 		serializer = UserSerializer(request.user)
-		print(serializer.data)
 		
 		return Response({'business_type':serializer.data['business_type'] }, status=status.HTTP_200_OK)
 
 
-class UserFileUploadView(APIView):
+class InvoiceFileUploadView(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	authentication_classes = (SessionAuthentication,)
 
 	def get(self, request):
 		user = request.user
-
-		user_files = UserFile.objects.filter(user=user)
-		serializer = UserInvoiceSerializer(user_files, many=True)
-		print(serializer.data)
+		invoice_files = InvoiceFile.objects.filter(user=user)
+		serializer = InvoiceSerializer(invoice_files, many=True)
 		return Response(serializer.data)
 	
 	def post(self, request):
-		serializer = UserInvoiceSerializer(data=request.data)
+		serializer = InvoiceSerializer(data=request.data)
 		if serializer.is_valid():
 			serializer.save(user=request.user)  # Pass user to the save method
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		print(serializer.errors)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SalesFileUploadView(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+	authentication_classes = (SessionAuthentication,)
+
+	def get(self, request):
+		user = request.user
+		sales_files = SalesFile.objects.filter(user=user)
+		serializer = SalesSerializer(sales_files, many=True)
+		return Response(serializer.data)
+	
+	def post(self, request):
+		print(request.data)
+		serializer = SalesSerializer(data=request.data)
+		if serializer.is_valid():
+			serializer.save(user=request.user)  # Pass user to the save method
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -102,26 +116,26 @@ class ReadExcelView(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	authentication_classes = (SessionAuthentication,)
 	def get(self, request):
-		user = request.user
+		# user = request.user
 
-		user_files = UserFile.objects.filter(user=user)
-		if not user_files:
-			return Response({"error": "No files uploaded by the user."}, status=status.HTTP_404_NOT_FOUND)
+		# user_files = UserFile.objects.filter(user=user)
+		# if not user_files:
+		# 	return Response({"error": "No files uploaded by the user."}, status=status.HTTP_404_NOT_FOUND)
 
-		# Assuming the user has only one file. Modify if multiple files are expected.
-		file_obj = user_files.first()
+		# # Assuming the user has only one file. Modify if multiple files are expected.
+		# file_obj = user_files.first()
 
-		file_path = file_obj.file.path  # Get the file path
-		file_path = os.path.dirname(file_path)+"/Products.xlsx"
+		# file_path = file_obj.file.path  # Get the file path
+		# file_path = os.path.dirname(file_path)+"/Products.xlsx"
 
-		if not os.path.exists(file_path):
-			return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+		# if not os.path.exists(file_path):
+		# 	return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
 
-		df = pd.read_excel(file_path)  # Read the Excel file into a DataFrame
-		first_10_rows = df.head(10)  # Get the first 10 rows
+		# df = pd.read_excel(file_path)  # Read the Excel file into a DataFrame
+		# first_10_rows = df.head(10)  # Get the first 10 rows
 
-		# Convert the DataFrame to JSON for response
-		response_data = first_10_rows.to_json(orient="records")
-		print(response_data)
+		# # Convert the DataFrame to JSON for response
+		# response_data = first_10_rows.to_json(orient="records")
+		# print(response_data)
 
-		return HttpResponse(response_data, content_type="application/json")
+		return HttpResponse("NO d\Data", content_type="application/json")

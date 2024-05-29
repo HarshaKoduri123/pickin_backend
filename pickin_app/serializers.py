@@ -1,7 +1,7 @@
 from django.forms import ValidationError
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
-from .models import UserFile
+from .models import InvoiceFile, SalesFile
 UserModel = get_user_model()
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -45,8 +45,14 @@ class UserSerializer(serializers.ModelSerializer):
 		model = UserModel
 		fields = ('email', 'fullname', 'business_name','business_type', 'phone')
 		
-class UserInvoiceSerializer(serializers.ModelSerializer):
+class InvoiceSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
-        model = UserFile
+        model = InvoiceFile
         fields = ['user', 'invoice_no', 'distributor_name', 'invoice_date', 'remarks', 'file']
+
+class SalesSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    class Meta:
+        model = SalesFile
+        fields = ['user', 'period', 'to_date', 'from_date', 'remarks', 'file']

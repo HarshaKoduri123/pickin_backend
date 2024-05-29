@@ -64,11 +64,20 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
 	def __str__(self):
 		return self.fullname
 
-class UserFile(models.Model):
+class InvoiceFile(models.Model):
 	user = models.ForeignKey(AppUser, on_delete=models.CASCADE)
-	file = models.FileField(upload_to='user_files/')
+	file = models.FileField(upload_to='invoice_files/')
 	invoice_no = models.CharField(max_length=50, default='Null')
 	distributor_name = models.CharField(max_length=100, default='Null')
 	invoice_date = models.DateField()
+	remarks = models.TextField(blank=True, null=True)
+	uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class SalesFile(models.Model):
+	user = models.ForeignKey(AppUser, on_delete=models.CASCADE)
+	file = models.FileField(upload_to='sales_files/')
+	from_date = models.DateField()  # New field for the start date
+	to_date = models.DateField()  # New field for the end date
+	period = models.CharField(max_length=20)  # New field for the period without choices
 	remarks = models.TextField(blank=True, null=True)
 	uploaded_at = models.DateTimeField(auto_now_add=True)
