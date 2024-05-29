@@ -4,6 +4,7 @@ __pycache__/
 
 # Ignore environment-specific files
 .myenv
+*.sqlite3
 
 myenv/
 
@@ -33,5 +34,5 @@ myenv/
 /sales_files/
 /user_files/
 
-*.sqlite3
+
 
