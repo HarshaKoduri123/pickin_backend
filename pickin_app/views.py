@@ -202,7 +202,7 @@ class MessageView(APIView):
 			writer = csv.writer(csvfile)
 			# Write the data row
 			writer.writerow(['user', message])
-			writer.writerow(['admin', "Thanks for contacting, we will get back soon"])
+			writer.writerow(['admin', "Thanks for contacting, we will look into it"])
 
 
 
