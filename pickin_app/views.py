@@ -6,11 +6,11 @@ from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerial
 from rest_framework import permissions, status
 from .validations import custom_validation, validate_email, validate_password
 from .models import InvoiceFile, SalesFile
-from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 import pandas as pd
+import csv
 import os
 
 
@@ -74,7 +74,7 @@ class BusinessTypeView(APIView):
 		return Response({'business_type':serializer.data['business_type'] }, status=status.HTTP_200_OK)
 
 
-class InvoiceFileUploadView(APIView):
+class InvoiceView(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	authentication_classes = (SessionAuthentication,)
 
@@ -92,7 +92,7 @@ class InvoiceFileUploadView(APIView):
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class SalesFileUploadView(APIView):
+class SalesView(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	authentication_classes = (SessionAuthentication,)
 
@@ -112,30 +112,121 @@ class SalesFileUploadView(APIView):
 
 
 
-class ReadExcelView(APIView):
+class ProductsView(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	authentication_classes = (SessionAuthentication,)
+
 	def get(self, request):
-		# user = request.user
+		user = request.user
+		base_dir = settings.BASE_DIR
+		file_path = os.path.join(base_dir, 'user_files', 'Products.xlsx')
 
-		# user_files = UserFile.objects.filter(user=user)
-		# if not user_files:
-		# 	return Response({"error": "No files uploaded by the user."}, status=status.HTTP_404_NOT_FOUND)
+		if not os.path.exists(file_path):
+			return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
 
-		# # Assuming the user has only one file. Modify if multiple files are expected.
-		# file_obj = user_files.first()
+		df = pd.read_excel(file_path, nrows=10)  
+		first_10_rows = df.head(10)
 
-		# file_path = file_obj.file.path  # Get the file path
-		# file_path = os.path.dirname(file_path)+"/Products.xlsx"
+		response_data = first_10_rows.to_json(orient="records")
+		
+		return HttpResponse(response_data, content_type="application/json")
 
-		# if not os.path.exists(file_path):
-		# 	return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+	def post(self, request):
+		user = request.user
+		base_dir = settings.BASE_DIR
+		file_path = os.path.join(base_dir, 'user_files', 'Products.xlsx')
 
-		# df = pd.read_excel(file_path)  # Read the Excel file into a DataFrame
-		# first_10_rows = df.head(10)  # Get the first 10 rows
+		if not os.path.exists(file_path):
+			return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
 
-		# # Convert the DataFrame to JSON for response
-		# response_data = first_10_rows.to_json(orient="records")
-		# print(response_data)
+		query = request.data.get('query', '')
+		category = request.data.get('category', '')
 
-		return HttpResponse("NO d\Data", content_type="application/json")
+		if not query or not category:
+			return Response({"error": "Query and category are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+		df = pd.read_excel(file_path)
+
+		if category == 'Item ID':
+			column = 'ItemID'
+		elif category == 'Item Name':
+			column = 'Description'
+		else:
+			return Response({"error": "Invalid category."}, status=status.HTTP_400_BAD_REQUEST)
+
+		# Filter the DataFrame
+		filtered_rows = df[df[column].astype(str).str.contains(query, case=False, na=False)]
+		print(query, category, filtered_rows)
+
+		if filtered_rows.empty:
+			return Response({"error": "No matching records found."}, status=status.HTTP_404_NOT_FOUND)
+
+		response_data = filtered_rows.to_json(orient="records")
+		return HttpResponse(response_data, content_type="application/json")
+	
+class MessageView(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+	authentication_classes = (SessionAuthentication,)
+
+	def get(self, request):
+		user_id = request.user
+		file_path = os.path.join(settings.BASE_DIR, 'user_files', f'{request.user.user_id}.csv')
+		if not os.path.exists(file_path):
+			
+			return Response({"message": []}, status=status.HTTP_200_OK)
+		
+		messages = []
+		with open(file_path, 'r') as csvfile:
+			reader = csv.reader(csvfile)
+			for row in reader:
+				
+				messages.append({"sender": row[0], "text": row[1]})
+
+		return Response({"message": messages}, status=status.HTTP_200_OK)
+
+	def post(self, request):
+		
+
+		message = request.data.get('message')
+		
+
+		if not message:
+			return Response({"error": "Message content is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+		file_path = os.path.join(settings.BASE_DIR, 'user_files', f'{request.user.user_id}.csv')
+		
+
+		file_exists = os.path.isfile(file_path)
+
+		with open(file_path, 'a', newline='') as csvfile:
+			writer = csv.writer(csvfile)
+			# Write the data row
+			writer.writerow(['user', message])
+			writer.writerow(['admin', "Thanks for contacting, we will get back soon"])
+
+
+
+		# # Read existing data and append new message if user_id is found
+		# if os.path.exists(file_path):
+		# 	with open(file_path, 'r', newline='') as csvfile:
+		# 		reader = csv.reader(csvfile)
+		# 		for row in reader:
+		# 			if row[0] == user_id:
+		# 				row[1] = row[1] + " " + message
+		# 				user_found = True
+		# 			new_rows.append(row)
+		# 			new_rows.append(['admin', "we will get back soon"])
+
+		# # If user_id is not found, add a new row
+		# if not user_found:
+		# 	new_rows.append([user_id, message])
+		# 	new_rows.append(['admin', "we will get back soon"])
+
+		# # Write updated data back to the CSV file
+		# with open(file_path, 'w', newline='') as csvfile:
+		# 	writer = csv.writer(csvfile)
+		# 	writer.writerows(new_rows)
+
+		return Response({"message": "Message saved successfully."}, status=status.HTTP_200_OK)
+
+	
