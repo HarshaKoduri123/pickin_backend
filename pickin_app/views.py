@@ -124,8 +124,8 @@ class ProductsView(APIView):
 		if not os.path.exists(file_path):
 			return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
 
-		df = pd.read_excel(file_path, nrows=10)  
-		first_10_rows = df.head(10)
+		df = pd.read_excel(file_path)  
+		first_10_rows = df
 
 		response_data = first_10_rows.to_json(orient="records")
 		
